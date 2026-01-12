@@ -1,0 +1,2485 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet.photon.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title>Peta Persebaran Sengketa, Konflik dan Perkara Tahun 2024-2025 Kabupaten Sumba Timur</title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet.photon.js"></script>
+        <script src="data/Sumba_Timur_1.js"></script>
+        <script src="data/DataSengketa20242025_2.js"></script>
+        <script src="data/DataPerkara20242025_3.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
+              highlightLayer.setStyle({
+                color: 'rgba(255, 255, 0, 1.00)',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: 'rgba(255, 255, 0, 1.00)',
+                fillOpacity: 1
+              });
+            }
+        }
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[-9.681969912973905,120.24378862392885],[-9.641776975224907,120.31793975155313]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // modify popup if contains media
+        function addClassToPopupIfMedia(content, popup) {
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = content;
+            var imgTd = tempDiv.querySelector('td img');
+            if (imgTd) {
+                var src = imgTd.getAttribute('src');
+                if (/\.(jpg|jpeg|png|gif|bmp|webp|avif)$/i.test(src)) {
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp3|wav|ogg|aac)$/i.test(src)) {
+                    var audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = src;
+                    imgTd.parentNode.replaceChild(audio, imgTd);
+                    popup._contentNode.classList.add('media');
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else if (/\.(mp4|webm|ogg|mov)$/i.test(src)) {
+                    var video = document.createElement('video');
+                    video.controls = true;
+                    video.src = src;
+                    video.style.width = "400px";
+                    video.style.height = "300px";
+                    video.style.maxHeight = "60vh";
+                    video.style.maxWidth = "60vw";
+                    imgTd.parentNode.replaceChild(video, imgTd);
+                    popup._contentNode.classList.add('media');
+                    // Aggiorna il popup quando il video carica i metadati
+                    video.addEventListener('loadedmetadata', function() {
+                        popup.update();
+                    });
+                    setTimeout(function() {
+                        popup.setContent(tempDiv.innerHTML);
+                        popup.update();
+                    }, 10);
+                } else {
+                    popup._contentNode.classList.remove('media');
+                }
+            } else {
+                popup._contentNode.classList.remove('media');
+            }
+        }
+        var title = new L.Control({'position':'topright'});
+        title.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        title.update = function () {
+            this._div.innerHTML = '<h2>Peta Persebaran Sengketa, Konflik dan Perkara Tahun 2024-2025 Kabupaten Sumba Timur</h2>';
+        };
+        title.addTo(map);
+        var abstract = new L.Control({'position':'topright'});
+        abstract.onAdd = function (map) {
+            this._div = L.DomUtil.create('div',
+            'leaflet-control abstract');
+            this._div.id = 'abstract'
+                this._div.setAttribute("onmouseenter", "abstract.show()");
+                this._div.setAttribute("onmouseleave", "abstract.hide()");
+                this.hide();
+                return this._div;
+            };
+            abstract.hide = function () {
+                this._div.classList.remove("abstractUncollapsed");
+                this._div.classList.add("abstract");
+                this._div.innerHTML = 'i'
+            }
+            abstract.show = function () {
+                this._div.classList.remove("abstract");
+                this._div.classList.add("abstractUncollapsed");
+                this._div.innerHTML = 'Peta ini memberikan infromasi mengenai sengketa, konflik dan perkara yang ada pada wilayah Kabupaten Sumba Timur. Sumber data pada peta ini berasal dari Kantor Pertanahan Kabipaten Sumba Timur khususnya Seksi Pengendalian dan Penanganan Sengketa dengan batasan masalah tahun 2024-2025. Berikut merupakan nama desa/kelurahan berserta jumlah tanah sengketa dan perkara sebagai berikut :<br /><br />Perkara <br />1. Kelurahan Prailiu, Kecamatan Kambera terdapat 3 Perkara Tahun 2024.<br />2. Kelurahan Temu, Kecamatan Kanatang terdapat 1 Perkara Tahun 2024.<br />3. Kelurahan Kambaniru, Kecamatan Kambera terdapat 1  Perkara Tahun 2024.<br />4. Kelurahan Kawangu, Kecamatan Pandawai tedapat 1 Perkara Tahun 2025.<br />5. Kelurahan Prailiu, Kecamatan Kambera terdapat 1 Perkara Tahun 2025.<br />6. Kelurahan Kamalaputi, Kecamatan Kota Waingapu terdapat 3 Perkara Tahun 2025.<br />7. Kelurahan Kambaniru, Kecamatan Kambera terdapat 1  Perkara Tahun 2025.<br /><br />Sengketa<br />1. Desa Matawai Katingga, Kecamatan Kahaungu Eti terdapat 1 Sengketa Tahun 2024.<br />2. Kelurahan Lambanapu, Kecamatan Kambera terdapat 1 Sengketa Tahun 2024.<br />3. Kelurahan Prailiu, Kecamatan Kambera terdapat 1 Sengketa Tahun 2024.<br />4. Kelurahan Kamalaputi, Kecamatan Kota Waingapu terdapat 1 Sengketa 2024.<br />5. Kelurahan Hambala, Kecamatan Kota Waingapu terdapat 1 Sengketa 2024.<br />6. Kelurahan Watumbaka, Kecamatan Pandawai terdapat 1 Sengketa 2024.<br />7. Kelurahan Lumbukore, Kecamatan Umalulu terdapat 1 Sengketa 2024.<br />8. Kelurahan Kawangu, Kecamatan Pandawai terdapat 1 Sengketa 2024.<br />9. Desa Kaliuda, Kecamatan Pahunga Lodu tedapat 1 Sengketa 2024.<br />10. Kelurahan Kambaniru, Kecamatan Kambera terdapat 1 Sengketa Tahun 2025.<br />11. Kelurahan Prailiu, Kecamatan Kambera terdapat 2 Sengketa Tahun 2025.<br />12. Desa Matawai  Katingga, Kecamatan Kahaungu Eti terdapat 1 Sengketa Tahun 2025.<br />13. Desa Kananggar, Kecamatan Paberiwai terdapat 1 Sengketa Tahun 2025.<br />14. Desa Hadakamali, Kecamatan Wulla Waijellu terdapat 2 Sengketa Tahun 2025.<br />15. Desa Lumbu Manggit, Kecamatan Wulla Waijellu terdapat 1 Sengketa Tahun 2025.<br />16. Kelurahan Kambajawa, Kecamatan Kota Waingapu terdapat 1 Sengketa Tahun 2025.<br />17. Desa Tarimbang, Kecamatan Tabundung terdapat 1 Sengketa Tahun 2025.<br />18. Desa Praimadita, Kecamatan Karera terdapat 1 Sengketa Tahun 2025.<br />19.  Kelurahan Lumbukore, Kecamatan Umalulu terdapat 1 Sengketa Tahun 2025.<br />20. Desa Kuta, Kecamatan Kanatang terdapat 1 Sengketa Tahun 2025.';
+        };
+        abstract.addTo(map);
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_GoogleSatellite_0');
+        map.getPane('pane_GoogleSatellite_0').style.zIndex = 400;
+        var layer_GoogleSatellite_0 = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            pane: 'pane_GoogleSatellite_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.google.at/permissions/geoguidelines/attr-guide.html">Map data ©2015 Google</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 20
+        });
+        layer_GoogleSatellite_0;
+        map.addLayer(layer_GoogleSatellite_0);
+        function pop_Sumba_Timur_1(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Desa / Kelurahan :</th>\
+                        <td>' + (feature.properties['WADMKD'] !== null ? autolinker.link(String(feature.properties['WADMKD']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Sumba_Timur_1_0(feature) {
+            switch(String(feature.properties['WADMKD'])) {
+                case 'Ananjaki':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Bangga Watu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Bidi Hunga':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Bidipraing':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Billa':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Hadakamali':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Haikatapu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Hambala':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Hambapraing':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Hambawutang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Hanggaroru':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Haray':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Janggamangu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kabanda':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kabaru':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kadahang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kadumbul':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kakaha':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kalamba':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kaliuda':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kamalaputi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kamanggih':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kambajawa':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kambaniru':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kambata Wundut':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kambatabundung':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kambatatana':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kambuhapang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kananggar':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kangeli':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Karera Jangga':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Karipi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Karita':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kataka':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Katiku Luku':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Katiku Wai':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Katikutana':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kawangu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kayuri':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kiritana':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kompa Pari':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kondamara':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kota Kawau':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kuki Talu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kuruwaki':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Kuta':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lahiru':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Laihau':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lailanjang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lailara':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lailunggi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Laimbonga':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Laimeta':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Laindeha':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lainjanji':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Laipandak':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lairuru':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Laitaku':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lambakara':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lambanapu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Latena':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lewa Paku':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lukukamaru':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lukuwingir':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lulundilu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lumbu Manggit':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Lumbukore':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mahaniwa':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mahubokul':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Maidang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Makamenggit':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Malumbi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mandahu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Marada Mundi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Matawai':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Matawai Amahu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Matawai Atu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Matawai Katingga':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Matawai Maringgu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Matawai Pawali':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mau Hau':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Maubokul':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mauliru':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mauramba':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mbatakapidu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mbatapuhu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mburukulu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mehang Mata':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Meurumba':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mondu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mondulambi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Mutunggeding':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Nangga':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Napu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Ndapayami':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Ngadulanggi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Ngaru Kanoru':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Nggongi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Pabera Manera':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Palaka Hembi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Palanggai':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Pambotandjara':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Pamburu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Paranda':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Patamawai':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Patawang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Pindu Hurani':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Prai Bakul':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Praibakul':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Praihambuli':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Praikalala':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Praikarang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Prailiu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Praimadita':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Praimbana':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Praing Kareha':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Praipaha':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Praisalura':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Praiwitu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Prauraming':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Pulu Panjang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Rakawatu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Rambangaru':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Ramuk':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Rindi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Tamburi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Tamma':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Tana Manang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Tana Rara':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Tanaraing':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Tanatuku':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Tandula Jangga':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Tapil':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Tarimbang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Tawui':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Temu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Umalulu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Umamanu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Wahang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Waikanabu':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Waimbidi':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Wairara':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Wanga':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Wangga':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Wangga Mbewa':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Wangga Meti':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Watuhadang':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Watumbaka':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Watumbelar':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Watupuda':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Winumuru':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Wudi Pandak':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Wulla':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                case 'Wunga':
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_Sumba_Timur_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(112,200,185,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Sumba_Timur_1');
+        map.getPane('pane_Sumba_Timur_1').style.zIndex = 401;
+        map.getPane('pane_Sumba_Timur_1').style['mix-blend-mode'] = 'normal';
+        var layer_Sumba_Timur_1 = new L.geoJson(json_Sumba_Timur_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Sumba_Timur_1',
+            layerName: 'layer_Sumba_Timur_1',
+            pane: 'pane_Sumba_Timur_1',
+            onEachFeature: pop_Sumba_Timur_1,
+            style: style_Sumba_Timur_1_0,
+        });
+        bounds_group.addLayer(layer_Sumba_Timur_1);
+        map.addLayer(layer_Sumba_Timur_1);
+        function pop_DataSengketa20242025_2(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Sengketa :</th>\
+                        <td>' + (feature.properties['Sengketa'] !== null ? autolinker.link(String(feature.properties['Sengketa']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Pengadu :</th>\
+                        <td>' + (feature.properties['Pengadu'] !== null ? autolinker.link(String(feature.properties['Pengadu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Teradu :</th>\
+                        <td>' + (feature.properties['Teradu'] !== null ? autolinker.link(String(feature.properties['Teradu']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Objek Sengketa:</th>\
+                        <td>' + (feature.properties['Objek_Seng'] !== null ? autolinker.link(String(feature.properties['Objek_Seng']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Uraian Pengaduan:</th>\
+                        <td>' + (feature.properties['Uraian_Pen'] !== null ? autolinker.link(String(feature.properties['Uraian_Pen']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Penyelesaian Pengaduan:</th>\
+                        <td>' + (feature.properties['Penyelesai'] !== null ? autolinker.link(String(feature.properties['Penyelesai']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Keterangan :</th>\
+                        <td>' + (feature.properties['Keterangan'] !== null ? autolinker.link(String(feature.properties['Keterangan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_DataSengketa20242025_2_0() {
+            return {
+                pane: 'pane_DataSengketa20242025_2',
+                opacity: 1,
+                color: 'rgba(247,225,55,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,255,51,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_DataSengketa20242025_2');
+        map.getPane('pane_DataSengketa20242025_2').style.zIndex = 402;
+        map.getPane('pane_DataSengketa20242025_2').style['mix-blend-mode'] = 'normal';
+        var layer_DataSengketa20242025_2 = new L.geoJson(json_DataSengketa20242025_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_DataSengketa20242025_2',
+            layerName: 'layer_DataSengketa20242025_2',
+            pane: 'pane_DataSengketa20242025_2',
+            onEachFeature: pop_DataSengketa20242025_2,
+            style: style_DataSengketa20242025_2_0,
+        });
+        bounds_group.addLayer(layer_DataSengketa20242025_2);
+        map.addLayer(layer_DataSengketa20242025_2);
+        function pop_DataPerkara20242025_3(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Nomor Perkara :</th>\
+                        <td>' + (feature.properties['Nomor_Perk'] !== null ? autolinker.link(String(feature.properties['Nomor_Perk']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Penggugat :</th>\
+                        <td>' + (feature.properties['Penggugat'] !== null ? autolinker.link(String(feature.properties['Penggugat']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Tergugat :</th>\
+                        <td>' + (feature.properties['Tergugat'] !== null ? autolinker.link(String(feature.properties['Tergugat']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Objek Perkara :</th>\
+                        <td>' + (feature.properties['Objek_Perk'] !== null ? autolinker.link(String(feature.properties['Objek_Perk']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Jenis Perkara :</th>\
+                        <td>' + (feature.properties['Jenis_Perk'] !== null ? autolinker.link(String(feature.properties['Jenis_Perk']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Pokok Masalah :</th>\
+                        <td>' + (feature.properties['Pokok_Masa'] !== null ? autolinker.link(String(feature.properties['Pokok_Masa']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Putusan/Agenda:</th>\
+                        <td>' + (feature.properties['Putusan_Ag'] !== null ? autolinker.link(String(feature.properties['Putusan_Ag']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Keterangan :</th>\
+                        <td>' + (feature.properties['Keterangan'] !== null ? autolinker.link(String(feature.properties['Keterangan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_DataPerkara20242025_3_0() {
+            return {
+                pane: 'pane_DataPerkara20242025_3',
+                opacity: 1,
+                color: 'rgba(128,14,16,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(228,26,28,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_DataPerkara20242025_3');
+        map.getPane('pane_DataPerkara20242025_3').style.zIndex = 403;
+        map.getPane('pane_DataPerkara20242025_3').style['mix-blend-mode'] = 'normal';
+        var layer_DataPerkara20242025_3 = new L.geoJson(json_DataPerkara20242025_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_DataPerkara20242025_3',
+            layerName: 'layer_DataPerkara20242025_3',
+            pane: 'pane_DataPerkara20242025_3',
+            onEachFeature: pop_DataPerkara20242025_3,
+            style: style_DataPerkara20242025_3_0,
+        });
+        bounds_group.addLayer(layer_DataPerkara20242025_3);
+        map.addLayer(layer_DataPerkara20242025_3);
+        const url = {"Nominatim OSM": "https://nominatim.openstreetmap.org/search?format=geojson&addressdetails=1&",
+        "France BAN": "https://api-adresse.data.gouv.fr/search/?"}
+        var photonControl = L.control.photon({
+            url: url["Nominatim OSM"],
+            feedbackLabel: '',
+            position: 'topleft',
+            includePosition: true,
+            initial: true,
+            // resultsHandler: myHandler,
+        }).addTo(map);
+        photonControl._container.childNodes[0].style.borderRadius="10px"
+        // Create a variable to store the geoJSON data
+        var x = null;
+        // Create a variable to store the marker
+        var marker = null;
+        // Add an event listener to the Photon control to create a marker from the returned geoJSON data
+        var z = null;
+        photonControl.on('selected', function(e) {
+            console.log(photonControl.search.resultsContainer);
+            if (x != null) {
+                map.removeLayer(obj3.marker);
+                map.removeLayer(x);
+            }
+            obj2.gcd = e.choice;
+            x = L.geoJSON(obj2.gcd).addTo(map);
+            var label = typeof obj2.gcd.properties.label === 'undefined' ? obj2.gcd.properties.display_name : obj2.gcd.properties.label;
+            obj3.marker = L.marker(x.getLayers()[0].getLatLng()).bindPopup(label).addTo(map);
+            map.setView(x.getLayers()[0].getLatLng(), 17);
+            z = typeof e.choice.properties.label === 'undefined'? e.choice.properties.display_name : e.choice.properties.label;
+            console.log(e);
+            e.target.input.value = z;
+        });
+        var search = document.getElementsByClassName("leaflet-photon leaflet-control")[0];
+        search.classList.add("leaflet-control-search")
+        search.style.display = "flex";
+        search.style.backgroundColor="rgba(255,255,255,0.5)" 
+
+        // Create the new button element
+        var button = document.createElement("div");
+        button.id = "gcd-button-control";
+        button.className = "gcd-gl-btn fa fa-search search-button";
+
+        // Insert the button at the beginning of the search control
+        search.insertBefore(button, search.firstChild);
+        last = search.lastChild;
+        last.style.display = "none";
+        button.addEventListener("click", function (e) {
+            if (last.style.display === "none") {
+                last.style.display = "block";
+            } else {
+                last.style.display = "none";
+            }
+        });
+        var overlaysTree = [
+            {label: '<img src="legend/DataPerkara20242025_3.png" /> Data Perkara 2024-2025', layer: layer_DataPerkara20242025_3},
+            {label: '<img src="legend/DataSengketa20242025_2.png" /> Data Sengketa 2024-2025', layer: layer_DataSengketa20242025_2},
+            {label: 'Sumba_Timur<br /><table><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Ananjaki0.png" /></td><td>Ananjaki</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_BanggaWatu1.png" /></td><td>Bangga Watu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_BidiHunga2.png" /></td><td>Bidi Hunga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Bidipraing3.png" /></td><td>Bidipraing</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Billa4.png" /></td><td>Billa</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Hadakamali5.png" /></td><td>Hadakamali</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Haikatapu6.png" /></td><td>Haikatapu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Hambala7.png" /></td><td>Hambala</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Hambapraing8.png" /></td><td>Hambapraing</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Hambawutang9.png" /></td><td>Hambawutang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Hanggaroru10.png" /></td><td>Hanggaroru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Haray11.png" /></td><td>Haray</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Janggamangu12.png" /></td><td>Janggamangu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kabanda13.png" /></td><td>Kabanda</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kabaru14.png" /></td><td>Kabaru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kadahang15.png" /></td><td>Kadahang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kadumbul16.png" /></td><td>Kadumbul</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kakaha17.png" /></td><td>Kakaha</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kalamba18.png" /></td><td>Kalamba</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kaliuda19.png" /></td><td>Kaliuda</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kamalaputi20.png" /></td><td>Kamalaputi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kamanggih21.png" /></td><td>Kamanggih</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kambajawa22.png" /></td><td>Kambajawa</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kambaniru23.png" /></td><td>Kambaniru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KambataWundut24.png" /></td><td>Kambata Wundut</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kambatabundung25.png" /></td><td>Kambatabundung</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kambatatana26.png" /></td><td>Kambatatana</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kambuhapang27.png" /></td><td>Kambuhapang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kananggar28.png" /></td><td>Kananggar</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kangeli29.png" /></td><td>Kangeli</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KareraJangga30.png" /></td><td>Karera Jangga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Karipi31.png" /></td><td>Karipi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Karita32.png" /></td><td>Karita</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kataka33.png" /></td><td>Kataka</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KatikuLuku34.png" /></td><td>Katiku Luku</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KatikuWai35.png" /></td><td>Katiku Wai</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Katikutana36.png" /></td><td>Katikutana</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kawangu37.png" /></td><td>Kawangu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kayuri38.png" /></td><td>Kayuri</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kiritana39.png" /></td><td>Kiritana</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KompaPari40.png" /></td><td>Kompa Pari</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kondamara41.png" /></td><td>Kondamara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KotaKawau42.png" /></td><td>Kota Kawau</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KukiTalu43.png" /></td><td>Kuki Talu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kuruwaki44.png" /></td><td>Kuruwaki</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kuta45.png" /></td><td>Kuta</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lahiru46.png" /></td><td>Lahiru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laihau47.png" /></td><td>Laihau</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lailanjang48.png" /></td><td>Lailanjang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lailara49.png" /></td><td>Lailara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lailunggi50.png" /></td><td>Lailunggi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laimbonga51.png" /></td><td>Laimbonga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laimeta52.png" /></td><td>Laimeta</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laindeha53.png" /></td><td>Laindeha</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lainjanji54.png" /></td><td>Lainjanji</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laipandak55.png" /></td><td>Laipandak</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lairuru56.png" /></td><td>Lairuru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laitaku57.png" /></td><td>Laitaku</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lambakara58.png" /></td><td>Lambakara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lambanapu59.png" /></td><td>Lambanapu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Latena60.png" /></td><td>Latena</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_LewaPaku61.png" /></td><td>Lewa Paku</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lukukamaru62.png" /></td><td>Lukukamaru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lukuwingir63.png" /></td><td>Lukuwingir</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lulundilu64.png" /></td><td>Lulundilu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_LumbuManggit65.png" /></td><td>Lumbu Manggit</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lumbukore66.png" /></td><td>Lumbukore</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mahaniwa67.png" /></td><td>Mahaniwa</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mahubokul68.png" /></td><td>Mahubokul</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Maidang69.png" /></td><td>Maidang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Makamenggit70.png" /></td><td>Makamenggit</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Malumbi71.png" /></td><td>Malumbi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mandahu72.png" /></td><td>Mandahu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MaradaMundi73.png" /></td><td>Marada Mundi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Matawai74.png" /></td><td>Matawai</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MatawaiAmahu75.png" /></td><td>Matawai Amahu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MatawaiAtu76.png" /></td><td>Matawai Atu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MatawaiKatingga77.png" /></td><td>Matawai Katingga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MatawaiMaringgu78.png" /></td><td>Matawai Maringgu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MatawaiPawali79.png" /></td><td>Matawai Pawali</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MauHau80.png" /></td><td>Mau Hau</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Maubokul81.png" /></td><td>Maubokul</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mauliru82.png" /></td><td>Mauliru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mauramba83.png" /></td><td>Mauramba</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mbatakapidu84.png" /></td><td>Mbatakapidu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mbatapuhu85.png" /></td><td>Mbatapuhu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mburukulu86.png" /></td><td>Mburukulu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MehangMata87.png" /></td><td>Mehang Mata</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Meurumba88.png" /></td><td>Meurumba</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mondu89.png" /></td><td>Mondu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mondulambi90.png" /></td><td>Mondulambi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mutunggeding91.png" /></td><td>Mutunggeding</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Nangga92.png" /></td><td>Nangga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Napu93.png" /></td><td>Napu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Ndapayami94.png" /></td><td>Ndapayami</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Ngadulanggi95.png" /></td><td>Ngadulanggi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_NgaruKanoru96.png" /></td><td>Ngaru Kanoru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Nggongi97.png" /></td><td>Nggongi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PaberaManera98.png" /></td><td>Pabera Manera</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PalakaHembi99.png" /></td><td>Palaka Hembi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Palanggai100.png" /></td><td>Palanggai</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Pambotandjara101.png" /></td><td>Pambotandjara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Pamburu102.png" /></td><td>Pamburu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Paranda103.png" /></td><td>Paranda</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Patamawai104.png" /></td><td>Patamawai</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Patawang105.png" /></td><td>Patawang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PinduHurani106.png" /></td><td>Pindu Hurani</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PraiBakul107.png" /></td><td>Prai Bakul</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praibakul108.png" /></td><td>Praibakul</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praihambuli109.png" /></td><td>Praihambuli</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praikalala110.png" /></td><td>Praikalala</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praikarang111.png" /></td><td>Praikarang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Prailiu112.png" /></td><td>Prailiu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praimadita113.png" /></td><td>Praimadita</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praimbana114.png" /></td><td>Praimbana</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PraingKareha115.png" /></td><td>Praing Kareha</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praipaha116.png" /></td><td>Praipaha</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praisalura117.png" /></td><td>Praisalura</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praiwitu118.png" /></td><td>Praiwitu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Prauraming119.png" /></td><td>Prauraming</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PuluPanjang120.png" /></td><td>Pulu Panjang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Rakawatu121.png" /></td><td>Rakawatu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Rambangaru122.png" /></td><td>Rambangaru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Ramuk123.png" /></td><td>Ramuk</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Rindi124.png" /></td><td>Rindi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tamburi125.png" /></td><td>Tamburi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tamma126.png" /></td><td>Tamma</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_TanaManang127.png" /></td><td>Tana Manang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_TanaRara128.png" /></td><td>Tana Rara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tanaraing129.png" /></td><td>Tanaraing</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tanatuku130.png" /></td><td>Tanatuku</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_TandulaJangga131.png" /></td><td>Tandula Jangga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tapil132.png" /></td><td>Tapil</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tarimbang133.png" /></td><td>Tarimbang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tawui134.png" /></td><td>Tawui</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Temu135.png" /></td><td>Temu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Umalulu136.png" /></td><td>Umalulu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Umamanu137.png" /></td><td>Umamanu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wahang138.png" /></td><td>Wahang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Waikanabu139.png" /></td><td>Waikanabu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Waimbidi140.png" /></td><td>Waimbidi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wairara141.png" /></td><td>Wairara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wanga142.png" /></td><td>Wanga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wangga143.png" /></td><td>Wangga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_WanggaMbewa144.png" /></td><td>Wangga Mbewa</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_WanggaMeti145.png" /></td><td>Wangga Meti</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Watuhadang146.png" /></td><td>Watuhadang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Watumbaka147.png" /></td><td>Watumbaka</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Watumbelar148.png" /></td><td>Watumbelar</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Watupuda149.png" /></td><td>Watupuda</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Winumuru150.png" /></td><td>Winumuru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_WudiPandak151.png" /></td><td>Wudi Pandak</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wulla152.png" /></td><td>Wulla</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wunga153.png" /></td><td>Wunga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_154.png" /></td><td></td></tr></table>', layer: layer_Sumba_Timur_1},
+            {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+        });
+        lay.addTo(map);
+        setBounds();
+        var i = 0;
+        layer_Sumba_Timur_1.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['WADMKD'] !== null?String('<div style="color: #aeff55; font-size: 14pt; font-weight: bold; font-family: \'Berlin Sans FB Demi\', sans-serif;">' + layer.feature.properties['WADMKD']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Sumba_Timur_1'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        resetLabels([layer_Sumba_Timur_1]);
+        map.on("zoomend", function(){
+            resetLabels([layer_Sumba_Timur_1]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_Sumba_Timur_1]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_Sumba_Timur_1]);
+        });
+        </script>        
+    </body>
+</html>
