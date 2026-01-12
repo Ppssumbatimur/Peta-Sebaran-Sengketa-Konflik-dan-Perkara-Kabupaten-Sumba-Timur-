@@ -1,0 +1,1 @@
+# Peta-Sebaran-Sengketa-Konflik-dan-Perkara-Kabupaten-Sumba-Timur-
