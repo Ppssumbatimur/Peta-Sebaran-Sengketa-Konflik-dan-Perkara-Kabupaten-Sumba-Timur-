@@ -36,8 +36,8 @@
         <script src="js/labels.js"></script>
         <script src="js/leaflet.photon.js"></script>
         <script src="data/Sumba_Timur_1.js"></script>
-        <script src="data/DataSengketa20242025_2.js"></script>
-        <script src="data/DataPerkara20242025_3.js"></script>
+        <script src="data/SengketaTahun20242025_2.js"></script>
+        <script src="data/PerkaraTahun20242025_3.js"></script>
         <script>
         var highlightLayer;
         function highlightFeature(e) {
@@ -56,7 +56,7 @@
         }
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[-9.681969912973905,120.24378862392885],[-9.641776975224907,120.31793975155313]]);
+        }).fitBounds([[-9.652123138299647,120.27431847685193],[-9.642074903862738,120.29285625875738]]);
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -2230,7 +2230,7 @@
         });
         bounds_group.addLayer(layer_Sumba_Timur_1);
         map.addLayer(layer_Sumba_Timur_1);
-        function pop_DataSengketa20242025_2(feature, layer) {
+        function pop_SengketaTahun20242025_2(feature, layer) {
             layer.on({
                 mouseout: function(e) {
                     for (var i in e.target._eventParents) {
@@ -2278,36 +2278,36 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_DataSengketa20242025_2_0() {
+        function style_SengketaTahun20242025_2_0() {
             return {
-                pane: 'pane_DataSengketa20242025_2',
+                pane: 'pane_SengketaTahun20242025_2',
                 opacity: 1,
-                color: 'rgba(247,225,55,1.0)',
+                color: 'rgba(0,0,0,1.0)',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
                 weight: 1.0, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(255,255,51,1.0)',
+                fillColor: 'rgba(0,115,151,1.0)',
                 interactive: true,
             }
         }
-        map.createPane('pane_DataSengketa20242025_2');
-        map.getPane('pane_DataSengketa20242025_2').style.zIndex = 402;
-        map.getPane('pane_DataSengketa20242025_2').style['mix-blend-mode'] = 'normal';
-        var layer_DataSengketa20242025_2 = new L.geoJson(json_DataSengketa20242025_2, {
+        map.createPane('pane_SengketaTahun20242025_2');
+        map.getPane('pane_SengketaTahun20242025_2').style.zIndex = 402;
+        map.getPane('pane_SengketaTahun20242025_2').style['mix-blend-mode'] = 'normal';
+        var layer_SengketaTahun20242025_2 = new L.geoJson(json_SengketaTahun20242025_2, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_DataSengketa20242025_2',
-            layerName: 'layer_DataSengketa20242025_2',
-            pane: 'pane_DataSengketa20242025_2',
-            onEachFeature: pop_DataSengketa20242025_2,
-            style: style_DataSengketa20242025_2_0,
+            dataVar: 'json_SengketaTahun20242025_2',
+            layerName: 'layer_SengketaTahun20242025_2',
+            pane: 'pane_SengketaTahun20242025_2',
+            onEachFeature: pop_SengketaTahun20242025_2,
+            style: style_SengketaTahun20242025_2_0,
         });
-        bounds_group.addLayer(layer_DataSengketa20242025_2);
-        map.addLayer(layer_DataSengketa20242025_2);
-        function pop_DataPerkara20242025_3(feature, layer) {
+        bounds_group.addLayer(layer_SengketaTahun20242025_2);
+        map.addLayer(layer_SengketaTahun20242025_2);
+        function pop_PerkaraTahun20242025_3(feature, layer) {
             layer.on({
                 mouseout: function(e) {
                     for (var i in e.target._eventParents) {
@@ -2348,7 +2348,7 @@
                         <td>' + (feature.properties['Putusan_Ag'] !== null ? autolinker.link(String(feature.properties['Putusan_Ag']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <th scope="row">Keterangan :</th>\
+                        <th scope="row">Keterangan  :</th>\
                         <td>' + (feature.properties['Keterangan'] !== null ? autolinker.link(String(feature.properties['Keterangan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
@@ -2359,9 +2359,9 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_DataPerkara20242025_3_0() {
+        function style_PerkaraTahun20242025_3_0() {
             return {
-                pane: 'pane_DataPerkara20242025_3',
+                pane: 'pane_PerkaraTahun20242025_3',
                 opacity: 1,
                 color: 'rgba(128,14,16,1.0)',
                 dashArray: '',
@@ -2374,20 +2374,20 @@
                 interactive: true,
             }
         }
-        map.createPane('pane_DataPerkara20242025_3');
-        map.getPane('pane_DataPerkara20242025_3').style.zIndex = 403;
-        map.getPane('pane_DataPerkara20242025_3').style['mix-blend-mode'] = 'normal';
-        var layer_DataPerkara20242025_3 = new L.geoJson(json_DataPerkara20242025_3, {
+        map.createPane('pane_PerkaraTahun20242025_3');
+        map.getPane('pane_PerkaraTahun20242025_3').style.zIndex = 403;
+        map.getPane('pane_PerkaraTahun20242025_3').style['mix-blend-mode'] = 'normal';
+        var layer_PerkaraTahun20242025_3 = new L.geoJson(json_PerkaraTahun20242025_3, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_DataPerkara20242025_3',
-            layerName: 'layer_DataPerkara20242025_3',
-            pane: 'pane_DataPerkara20242025_3',
-            onEachFeature: pop_DataPerkara20242025_3,
-            style: style_DataPerkara20242025_3_0,
+            dataVar: 'json_PerkaraTahun20242025_3',
+            layerName: 'layer_PerkaraTahun20242025_3',
+            pane: 'pane_PerkaraTahun20242025_3',
+            onEachFeature: pop_PerkaraTahun20242025_3,
+            style: style_PerkaraTahun20242025_3_0,
         });
-        bounds_group.addLayer(layer_DataPerkara20242025_3);
-        map.addLayer(layer_DataPerkara20242025_3);
+        bounds_group.addLayer(layer_PerkaraTahun20242025_3);
+        map.addLayer(layer_PerkaraTahun20242025_3);
         const url = {"Nominatim OSM": "https://nominatim.openstreetmap.org/search?format=geojson&addressdetails=1&",
         "France BAN": "https://api-adresse.data.gouv.fr/search/?"}
         var photonControl = L.control.photon({
@@ -2442,8 +2442,8 @@
             }
         });
         var overlaysTree = [
-            {label: '<img src="legend/DataPerkara20242025_3.png" /> Data Perkara 2024-2025', layer: layer_DataPerkara20242025_3},
-            {label: '<img src="legend/DataSengketa20242025_2.png" /> Data Sengketa 2024-2025', layer: layer_DataSengketa20242025_2},
+            {label: '<img src="legend/PerkaraTahun20242025_3.png" /> Perkara Tahun 2024-2025', layer: layer_PerkaraTahun20242025_3},
+            {label: '<img src="legend/SengketaTahun20242025_2.png" /> Sengketa Tahun 2024-2025', layer: layer_SengketaTahun20242025_2},
             {label: 'Sumba_Timur<br /><table><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Ananjaki0.png" /></td><td>Ananjaki</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_BanggaWatu1.png" /></td><td>Bangga Watu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_BidiHunga2.png" /></td><td>Bidi Hunga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Bidipraing3.png" /></td><td>Bidipraing</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Billa4.png" /></td><td>Billa</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Hadakamali5.png" /></td><td>Hadakamali</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Haikatapu6.png" /></td><td>Haikatapu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Hambala7.png" /></td><td>Hambala</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Hambapraing8.png" /></td><td>Hambapraing</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Hambawutang9.png" /></td><td>Hambawutang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Hanggaroru10.png" /></td><td>Hanggaroru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Haray11.png" /></td><td>Haray</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Janggamangu12.png" /></td><td>Janggamangu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kabanda13.png" /></td><td>Kabanda</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kabaru14.png" /></td><td>Kabaru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kadahang15.png" /></td><td>Kadahang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kadumbul16.png" /></td><td>Kadumbul</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kakaha17.png" /></td><td>Kakaha</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kalamba18.png" /></td><td>Kalamba</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kaliuda19.png" /></td><td>Kaliuda</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kamalaputi20.png" /></td><td>Kamalaputi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kamanggih21.png" /></td><td>Kamanggih</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kambajawa22.png" /></td><td>Kambajawa</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kambaniru23.png" /></td><td>Kambaniru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KambataWundut24.png" /></td><td>Kambata Wundut</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kambatabundung25.png" /></td><td>Kambatabundung</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kambatatana26.png" /></td><td>Kambatatana</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kambuhapang27.png" /></td><td>Kambuhapang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kananggar28.png" /></td><td>Kananggar</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kangeli29.png" /></td><td>Kangeli</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KareraJangga30.png" /></td><td>Karera Jangga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Karipi31.png" /></td><td>Karipi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Karita32.png" /></td><td>Karita</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kataka33.png" /></td><td>Kataka</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KatikuLuku34.png" /></td><td>Katiku Luku</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KatikuWai35.png" /></td><td>Katiku Wai</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Katikutana36.png" /></td><td>Katikutana</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kawangu37.png" /></td><td>Kawangu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kayuri38.png" /></td><td>Kayuri</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kiritana39.png" /></td><td>Kiritana</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KompaPari40.png" /></td><td>Kompa Pari</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kondamara41.png" /></td><td>Kondamara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KotaKawau42.png" /></td><td>Kota Kawau</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_KukiTalu43.png" /></td><td>Kuki Talu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kuruwaki44.png" /></td><td>Kuruwaki</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Kuta45.png" /></td><td>Kuta</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lahiru46.png" /></td><td>Lahiru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laihau47.png" /></td><td>Laihau</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lailanjang48.png" /></td><td>Lailanjang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lailara49.png" /></td><td>Lailara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lailunggi50.png" /></td><td>Lailunggi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laimbonga51.png" /></td><td>Laimbonga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laimeta52.png" /></td><td>Laimeta</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laindeha53.png" /></td><td>Laindeha</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lainjanji54.png" /></td><td>Lainjanji</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laipandak55.png" /></td><td>Laipandak</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lairuru56.png" /></td><td>Lairuru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Laitaku57.png" /></td><td>Laitaku</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lambakara58.png" /></td><td>Lambakara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lambanapu59.png" /></td><td>Lambanapu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Latena60.png" /></td><td>Latena</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_LewaPaku61.png" /></td><td>Lewa Paku</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lukukamaru62.png" /></td><td>Lukukamaru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lukuwingir63.png" /></td><td>Lukuwingir</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lulundilu64.png" /></td><td>Lulundilu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_LumbuManggit65.png" /></td><td>Lumbu Manggit</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Lumbukore66.png" /></td><td>Lumbukore</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mahaniwa67.png" /></td><td>Mahaniwa</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mahubokul68.png" /></td><td>Mahubokul</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Maidang69.png" /></td><td>Maidang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Makamenggit70.png" /></td><td>Makamenggit</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Malumbi71.png" /></td><td>Malumbi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mandahu72.png" /></td><td>Mandahu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MaradaMundi73.png" /></td><td>Marada Mundi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Matawai74.png" /></td><td>Matawai</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MatawaiAmahu75.png" /></td><td>Matawai Amahu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MatawaiAtu76.png" /></td><td>Matawai Atu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MatawaiKatingga77.png" /></td><td>Matawai Katingga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MatawaiMaringgu78.png" /></td><td>Matawai Maringgu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MatawaiPawali79.png" /></td><td>Matawai Pawali</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MauHau80.png" /></td><td>Mau Hau</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Maubokul81.png" /></td><td>Maubokul</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mauliru82.png" /></td><td>Mauliru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mauramba83.png" /></td><td>Mauramba</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mbatakapidu84.png" /></td><td>Mbatakapidu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mbatapuhu85.png" /></td><td>Mbatapuhu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mburukulu86.png" /></td><td>Mburukulu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_MehangMata87.png" /></td><td>Mehang Mata</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Meurumba88.png" /></td><td>Meurumba</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mondu89.png" /></td><td>Mondu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mondulambi90.png" /></td><td>Mondulambi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Mutunggeding91.png" /></td><td>Mutunggeding</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Nangga92.png" /></td><td>Nangga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Napu93.png" /></td><td>Napu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Ndapayami94.png" /></td><td>Ndapayami</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Ngadulanggi95.png" /></td><td>Ngadulanggi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_NgaruKanoru96.png" /></td><td>Ngaru Kanoru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Nggongi97.png" /></td><td>Nggongi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PaberaManera98.png" /></td><td>Pabera Manera</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PalakaHembi99.png" /></td><td>Palaka Hembi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Palanggai100.png" /></td><td>Palanggai</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Pambotandjara101.png" /></td><td>Pambotandjara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Pamburu102.png" /></td><td>Pamburu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Paranda103.png" /></td><td>Paranda</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Patamawai104.png" /></td><td>Patamawai</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Patawang105.png" /></td><td>Patawang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PinduHurani106.png" /></td><td>Pindu Hurani</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PraiBakul107.png" /></td><td>Prai Bakul</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praibakul108.png" /></td><td>Praibakul</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praihambuli109.png" /></td><td>Praihambuli</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praikalala110.png" /></td><td>Praikalala</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praikarang111.png" /></td><td>Praikarang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Prailiu112.png" /></td><td>Prailiu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praimadita113.png" /></td><td>Praimadita</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praimbana114.png" /></td><td>Praimbana</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PraingKareha115.png" /></td><td>Praing Kareha</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praipaha116.png" /></td><td>Praipaha</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praisalura117.png" /></td><td>Praisalura</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Praiwitu118.png" /></td><td>Praiwitu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Prauraming119.png" /></td><td>Prauraming</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_PuluPanjang120.png" /></td><td>Pulu Panjang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Rakawatu121.png" /></td><td>Rakawatu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Rambangaru122.png" /></td><td>Rambangaru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Ramuk123.png" /></td><td>Ramuk</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Rindi124.png" /></td><td>Rindi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tamburi125.png" /></td><td>Tamburi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tamma126.png" /></td><td>Tamma</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_TanaManang127.png" /></td><td>Tana Manang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_TanaRara128.png" /></td><td>Tana Rara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tanaraing129.png" /></td><td>Tanaraing</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tanatuku130.png" /></td><td>Tanatuku</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_TandulaJangga131.png" /></td><td>Tandula Jangga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tapil132.png" /></td><td>Tapil</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tarimbang133.png" /></td><td>Tarimbang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Tawui134.png" /></td><td>Tawui</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Temu135.png" /></td><td>Temu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Umalulu136.png" /></td><td>Umalulu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Umamanu137.png" /></td><td>Umamanu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wahang138.png" /></td><td>Wahang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Waikanabu139.png" /></td><td>Waikanabu</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Waimbidi140.png" /></td><td>Waimbidi</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wairara141.png" /></td><td>Wairara</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wanga142.png" /></td><td>Wanga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wangga143.png" /></td><td>Wangga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_WanggaMbewa144.png" /></td><td>Wangga Mbewa</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_WanggaMeti145.png" /></td><td>Wangga Meti</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Watuhadang146.png" /></td><td>Watuhadang</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Watumbaka147.png" /></td><td>Watumbaka</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Watumbelar148.png" /></td><td>Watumbelar</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Watupuda149.png" /></td><td>Watupuda</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Winumuru150.png" /></td><td>Winumuru</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_WudiPandak151.png" /></td><td>Wudi Pandak</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wulla152.png" /></td><td>Wulla</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_Wunga153.png" /></td><td>Wunga</td></tr><tr><td style="text-align: center;"><img src="legend/Sumba_Timur_1_154.png" /></td><td></td></tr></table>', layer: layer_Sumba_Timur_1},
             {label: "Google Satellite", layer: layer_GoogleSatellite_0},]
         var lay = L.control.layers.tree(null, overlaysTree,{
